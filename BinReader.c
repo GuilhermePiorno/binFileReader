@@ -1,32 +1,29 @@
 // Este programa tem como objetivo auxiliar a leitura de arquivos binários quando
 // tentando compreender e debugar programas.
+
 #include <stdio.h>
 #include <stdlib.h>
-#include "frame.c"
+#include "tui.c"
+
+#define CHAR 0;
+#define INT 1;
+#define FLOAT 2;
 
 
-void limpaTela(void){
-    #ifdef _WIN32
-        system("cls");
-    #else
-        system("clear");
-    #endif
-}
 
 
 int main(void){
-
     limpaTela();
     int offset = 16; // (Bytes per row)
-
-
-    // printf("\xB2\xB2\xB2\xB2\xB2\xB2\xB2\xB2\xB2\xB2\xB2\xB2 SYZ INVENTORY PROGRAM \xB2\xB2\xB2\xB2\xB2\xB2\xB2\xB2\xB2\xB2\xB2\xB2");
+    int op, continua = 1;
+    int nBlocks;
 
     char nomeArquivo[131];
     printf("Digite o nome do arquivo binario: ");
     scanf("%[^\n]s", nomeArquivo);
     FILE *arquivo;
     arquivo = fopen(nomeArquivo, "rb");
+
     limpaTela();
     while (!arquivo){
         printf("Arquivo nao encontrado!\nDigite o nome do arquivo binario: ");
@@ -34,42 +31,68 @@ int main(void){
         arquivo = fopen(nomeArquivo, "rb");
         limpaTela();
     }
-
-    int readStatus = 1, line = 0;
-    unsigned char byte;
-
-    // Name tab.
-    horizontalFrameln(8, 201, 187);
-    printf("\xBA %s \xBA\n", nomeArquivo);
-
-    //Header
-    horizontalFrame(8, 204, 202);
-    horizontalFrameln(134, 0, 187);
-    printf("\xBA Offset\t 00\t 01\t 02\t 03\t 04\t 05\t 06\t 07\t 08\t 09\t 0A\t 0B\t 0C\t 0D\t 0E\t 0F     \xBA\n");
-    horizontalFrame(11, 204, 203);
-    horizontalFrameln(131, 0, 185);
     
-    //Actual table
-    while(readStatus){
-        printf("\xBA   %02X\t    \xBA    ", line);
-        for (int byteNumber = line; byteNumber < (line+offset); byteNumber++){
-            readStatus = fread(&byte, sizeof(unsigned char), 1, arquivo);
+    hexdump(arquivo, offset, nomeArquivo);
 
-            if (readStatus){
-                printf("0x%02X\t", byte);
-            } 
-            else{
-                printf("\t");
-            }
+    while(continua){
+        printf("[1] Mudar bytes por linha\n");
+        printf("[2] Definir decoder\n");
+        printf("[3] Agregar bytes\n");
+        printf("[9] Sair\n");
+        scanf("%d", &op);
+
+        switch(op){
+            case 1:
+                limpaTela();
+                hexdump(arquivo, offset, nomeArquivo);
+                printf("Digite quantos bytes por linha: ");
+                scanf("%d", &offset);
+                limpaTela();
+                hexdump(arquivo, offset, nomeArquivo);
+                break;
+            case 2:
+                limpaTela();
+                hexdump(arquivo, offset, nomeArquivo);
+                printf("Numero de dados para decodificar: ");
+                scanf("%d", &nBlocks);
+                int *dataTypes;
+                char readType[10];
+                dataTypes = malloc(nBlocks *sizeof(int));
+                for (int i=0; i<nBlocks; i++){
+                    printf("Qual e o tipo do %d\xA7 dado (int, float ou char): ", i+1);
+                    scanf(" %s", readType);
+                    dataTypes[i] = CHAR;
+                    if (strcmp(readType, "char") == 0) dataTypes[i] = CHAR;
+                    if (strcmp(readType, "int") == 0) dataTypes[i] = INT;
+                    if (strcmp(readType, "float") == 0) dataTypes[i] = FLOAT;
+                }
+                limpaTela();
+                hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
+                break;
+            case 3:
+                limpaTela();
+                hexdump(arquivo, offset, nomeArquivo);
+                printf("Funcao nao implementada.\n");
+                break;
+            default:
+                continua = 0;
+                printf("Saindo..\n");
+                break;
         }
-        printf("\xBA\n");
-        
-        readStatus = fread(&byte, sizeof(unsigned char), 1, arquivo);
-        fseek(arquivo, -1, SEEK_CUR);
-        line += offset;
     }
-    horizontalFrame(11, 200, 202);
-    horizontalFrameln(131, 0, 188);
+    
+
+
+
+
+
+
+
+
+
+
+
+
     fclose(arquivo);
 
 
