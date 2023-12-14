@@ -16,9 +16,12 @@ int main(void){
     limpaTela();
     int offset = 16; // (Bytes per row)
     int op, continua = 1;
-    int nBlocks;
+    int nBlocks=1;
+    int *dataTypes = malloc(sizeof(int));
+    dataTypes[0] = CHAR;
 
     char nomeArquivo[131];
+    printf("Dados decodificados para char entre 0x00 e 0x37 sao exibidos como \".\"\n");
     printf("Digite o nome do arquivo binario: ");
     scanf("%[^\n]s", nomeArquivo);
     FILE *arquivo;
@@ -32,9 +35,11 @@ int main(void){
         limpaTela();
     }
     
-    hexdump(arquivo, offset, nomeArquivo);
+    // hexdump(arquivo, offset, nomeArquivo);
+    hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
 
     while(continua){
+        printf("[0] Alterar arquivo\n");
         printf("[1] Mudar bytes por linha\n");
         printf("[2] Definir decoder\n");
         printf("[3] Agregar bytes\n");
@@ -42,22 +47,42 @@ int main(void){
         scanf("%d", &op);
 
         switch(op){
+            case 0:
+                fclose(arquivo);
+                arquivo = NULL;
+                limpaTela();
+                printf("Digite o nome do arquivo binario: ");
+                scanf(" %[^\n]s", nomeArquivo);
+                arquivo = fopen(nomeArquivo, "rb");
+
+                while (!arquivo){
+                    limpaTela();
+                    printf("Arquivo nao encontrado!\nDigite o nome do arquivo binario: ");
+                    scanf(" %[^\n]s", nomeArquivo);
+                    arquivo = fopen(nomeArquivo, "rb");
+                }
+                limpaTela();
+                hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
+                break;
             case 1:
                 limpaTela();
-                hexdump(arquivo, offset, nomeArquivo);
+                hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
                 printf("Digite quantos bytes por linha: ");
                 scanf("%d", &offset);
                 limpaTela();
-                hexdump(arquivo, offset, nomeArquivo);
+                hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
+
                 break;
             case 2:
                 limpaTela();
-                hexdump(arquivo, offset, nomeArquivo);
+                hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
                 printf("Numero de dados para decodificar: ");
                 scanf("%d", &nBlocks);
-                int *dataTypes;
-                char readType[10];
+                free(dataTypes);
                 dataTypes = malloc(nBlocks *sizeof(int));
+
+                char readType[10];                
+                
                 for (int i=0; i<nBlocks; i++){
                     printf("Qual e o tipo do %d\xA7 dado (int, float ou char): ", i+1);
                     scanf(" %s", readType);
@@ -71,7 +96,7 @@ int main(void){
                 break;
             case 3:
                 limpaTela();
-                hexdump(arquivo, offset, nomeArquivo);
+                hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
                 printf("Funcao nao implementada.\n");
                 break;
             default:

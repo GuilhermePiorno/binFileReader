@@ -132,6 +132,7 @@ void hexdumpWithDecode(FILE *arq, int offset, char *name, int *dataTypes, int nB
                 case 0:
                     nextByte += 1;
                     fread(&auxChar, sizeof(char), 1, arq);
+                    if ((0 <= auxChar) && (auxChar <= 37)) auxChar = 46;
                     printf("%c ", auxChar);
                     break;
                 //int
