@@ -1,0 +1,5 @@
+
+windows:
+mode con: cols=200 lines=50
+linux:
+

@@ -22,59 +22,9 @@ void horizontalFrameln(int n, char chStart, char chEnd){
     printf("\n");
 }
 
-void hexdump(FILE *arq, int offset, char *name){
-    int readStatus = 1, line = 0;
-    unsigned char byte;
-    fseek(arq, 0, SEEK_SET);
-
-    // Name tab.
-    horizontalFrameln(strlen(name) + 2, 201, 187);              // ╔  ═   ╗
-    printf("\xBA %s \xBA\n", name);                             // ║ name ║
-
-    //Header ╠  ═  ╩  ═  ╗
-    horizontalFrame(strlen(name) + 2, 204, 202);                // ╠  ═   ╩
-    horizontalFrameln((12 + 8*offset)-strlen(name), 0, 187);    //            ═ ╗
-
-    // ║ Offset    ║   00      01  .... ║
-    printf("\xBA Offset    \xBA");
-    for(int i=0; i<offset;i++){
-        printf("\t%02X",i);
-    }
-    printf("\t\xBA\n");
-
-    // ╠  ═  ╬  ═  ═╣
-    horizontalFrame(11, 204, 206);
-    horizontalFrameln(3 + (8*offset), 0, 185);
-    
-    //Actual table
-    while(readStatus){
-        printf("\xBA   %02X\t    \xBA   ", line);
-        for (int byteNumber = line; byteNumber < (line+offset); byteNumber++){
-            readStatus = fread(&byte, sizeof(unsigned char), 1, arq);
-
-            if (readStatus){
-                printf("0x%02X\t", byte);
-            } 
-            else{
-                printf("\t");
-            }
-        }
-        printf("\xBA\n"); //  ║
-        
-        readStatus = fread(&byte, sizeof(unsigned char), 1, arq);
-        fseek(arq, -1, SEEK_CUR);
-        line += offset;
-    }
-
-    //Bottom bar.
-    // ╚  ═  ╩  ═  ╝
-    horizontalFrame(11, 200, 202);
-    horizontalFrameln(3 + (8*offset), 0, 188);
-
-}
 
 
-void hexdumpWithDecode(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks){
+void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks){
     int readStatus = 1, line = 0;
     unsigned char byte;
     int currentBlock = 0, bytesParsed = 0, nextByte = 0, dataTypeWalk=0;

@@ -10,5 +10,7 @@ void horizontalFrame(int n, char chStart, char chEnd);
 // Imprime n separadores horizontais com inicio e fim.\n no fim.
 void horizontalFrameln(int n, char chStart, char chEnd);
 
-// Hexdump basico.
-void hexdump(FILE *arq, int offset, char *name);
+
+// Hexdump with decoding.
+void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks);
+

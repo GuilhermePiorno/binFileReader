@@ -36,7 +36,7 @@ int main(void){
     }
     
     // hexdump(arquivo, offset, nomeArquivo);
-    hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
+    hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
 
     while(continua){
         printf("[0] Alterar arquivo\n");
@@ -62,20 +62,20 @@ int main(void){
                     arquivo = fopen(nomeArquivo, "rb");
                 }
                 limpaTela();
-                hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
+                hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
                 break;
             case 1:
                 limpaTela();
-                hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
+                hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
                 printf("Digite quantos bytes por linha: ");
                 scanf("%d", &offset);
                 limpaTela();
-                hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
+                hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
 
                 break;
             case 2:
                 limpaTela();
-                hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
+                hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
                 printf("Numero de dados para decodificar: ");
                 scanf("%d", &nBlocks);
                 free(dataTypes);
@@ -92,11 +92,11 @@ int main(void){
                     if (strcmp(readType, "float") == 0) dataTypes[i] = FLOAT;
                 }
                 limpaTela();
-                hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
+                hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
                 break;
             case 3:
                 limpaTela();
-                hexdumpWithDecode(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
+                hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks);
                 printf("Funcao nao implementada.\n");
                 break;
             default:
