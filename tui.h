@@ -12,5 +12,5 @@ void horizontalFrameln(int n, char chStart, char chEnd);
 
 
 // Hexdump with decoding.
-void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks);
+void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int grouping);
 
