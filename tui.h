@@ -2,7 +2,7 @@
 #include <string.h>
 
 // Limpa a tela.
-void limpaTela(void);
+void clearScreen(void);
 
 // Imprime n separadores horizontais  com inicio e fim.
 void horizontalFrame(int n, char chStart, char chEnd);
@@ -12,5 +12,9 @@ void horizontalFrameln(int n, char chStart, char chEnd);
 
 
 // Hexdump with decoding.
-void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int grouping);
+void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int grouping, int offsetHex);
+
+//Suffix for ordinal numbers.
+const char* getSuffix(int num);
+
 

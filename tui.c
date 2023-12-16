@@ -1,7 +1,7 @@
 #include "tui.h"
 #include <stdlib.h>
 
-void limpaTela(void){
+void clearScreen(void){
     #ifdef _WIN32
         system("cls");
     #else
@@ -24,7 +24,7 @@ void horizontalFrameln(int n, char chStart, char chEnd){
 
 
 
-void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int grouping){
+void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int grouping, int offsetHex){
     int readStatus = 1, line = 0;
     unsigned char byte;
     int currentBlock = 0, bytesParsed = 0, nextByte = 0, dataTypeWalk=0;
@@ -55,7 +55,13 @@ void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int
     printf("\xBA Offset    \xBA");
     for(int i=0; i<offset;i++){
         if ((i%grouping) == 0){
-            printf("\t%02X",i);
+            if (offsetHex==0){
+                printf("\t%02X",i);
+            }
+            else{
+                printf("\t%02d",i);
+            }
+            
         }
         else{
             printf("  ");
@@ -71,11 +77,18 @@ void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int
     
     //Actual table
     while(readStatus){
-        printf("\xBA   %02X\t    \xBA   ", line);
+        // line index.
+        if (offsetHex==0){
+            printf("\xBA   %02X\t    \xBA   ", line);
+        }
+        else{
+            printf("\xBA   %02d\t    \xBA   ", line);
+        }
         for (int byteNumber = line; byteNumber < (line+offset); byteNumber++){
             readStatus = fread(&byte, sizeof(unsigned char), 1, arq);
-            
+
             if (readStatus){
+                // byte printing.
                 if (grouping == 1){
                     printf("0x%02X", byte);
                 }
@@ -154,4 +167,18 @@ void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int
     horizontalFrame(11, 200, 202);
     horizontalFrameln(3 + magicspace, 0, 188);
 
+}
+
+
+const char* getSuffix(int num) {
+    if (num >= 10 && num <= 20) {
+        return "th";
+    } else {
+        switch (num % 10) {
+            case 1: return "st";
+            case 2: return "nd";
+            case 3: return "rd";
+            default: return "th";
+        }
+    }
 }

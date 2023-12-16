@@ -13,65 +13,65 @@
 
 
 int main(void){
-    limpaTela();
+    clearScreen();
     int offset = 16; // (Bytes per row)
     int op, continua = 1;
     int nBlocks=1;
     int *dataTypes = malloc(sizeof(int));
     int grouping = 1;
     dataTypes[0] = CHAR;
+    int offsetHex = 0; // 0 for hex, 1 for dec.
 
     char nomeArquivo[131];
-    printf("\nMaximize a janela para melhor visualizar seus dados!\n\n");
-    printf("Dados decodificados para char entre 0x00 e 0x37 sao exibidos como \".\"\n");
-    printf("Digite o nome do arquivo binario: ");
+    printf("\nPlease maximize or enlarge your window in order to better visualize your data.\n\n");
+    printf("Decoded char data between 0x00 and 0x37 are going to be represented by a dot.\n");
+    printf("Type the name of the binary file: ");
     scanf("%[^\n]s", nomeArquivo);
     FILE *arquivo;
     arquivo = fopen(nomeArquivo, "rb");
 
     while (!arquivo){
-        limpaTela();
-        printf("Arquivo nao encontrado!\nDigite o nome do arquivo binario: ");
+        clearScreen();
+        printf("File not found!\nType the name of the binary file: ");
         scanf(" %[^\n]s", nomeArquivo);
         arquivo = fopen(nomeArquivo, "rb");
         
     }
     
     while(continua){
-        limpaTela();
-        hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping);
-        printf("[0] Alterar arquivo\n");
-        printf("[1] Mudar bytes por linha\n");
-        printf("[2] Definir decoder\n");
-        printf("[3] Agrupar bytes\n");
-        printf("[9] Sair\n");
+        clearScreen();
+        hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex);
+        printf("[1] Open file...\n");
+        printf("[2] Adjust bytes per line displayed.\n");
+        printf("[3] Decoder configuration.\n");
+        printf("[4] Change byte group size.\n");
+        printf("[5] Toggle offset display between Hex & Dec.\n");
+        printf("[9] Exit\n");
         scanf("%d", &op);
+        clearScreen();
+        hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex);
 
         switch(op){
-            case 0:
+            case 1:
                 fclose(arquivo);
                 arquivo = NULL;
-                limpaTela();
-                printf("Digite o nome do arquivo binario: ");
+                printf("Type the name of the binary file: ");
                 scanf(" %[^\n]s", nomeArquivo);
                 arquivo = fopen(nomeArquivo, "rb");
                 while (!arquivo){
-                    limpaTela();
-                    printf("Arquivo nao encontrado!\nDigite o nome do arquivo binario: ");
+                    clearScreen();
+                    printf("File not found!\nType the name of the binary file: ");
                     scanf(" %[^\n]s", nomeArquivo);
                     arquivo = fopen(nomeArquivo, "rb");
                 }
                 break;
-            case 1:
-                limpaTela();
-                hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping);
-                printf("Digite quantos bytes por linha: ");
+            case 2:
+                printf("Number of bytes per line: ");
                 scanf("%d", &offset);
                 break;
-            case 2:
-                limpaTela();
-                hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping);
-                printf("Numero de dados para decodificar: ");
+            case 3:
+                printf("Data will be broken down into chunks, chunks will be interpreted as the given data types in the respective order.\n");
+                printf("Number of chunks to break down data: ");
                 scanf("%d", &nBlocks);
                 free(dataTypes);
                 dataTypes = malloc(nBlocks *sizeof(int));
@@ -79,7 +79,7 @@ int main(void){
                 char readType[10];                
                 
                 for (int i=0; i<nBlocks; i++){
-                    printf("Qual e o tipo do %d\xA7 dado (int, float ou char): ", i+1);
+                    printf("What is the type of the %d%s data (int, float ou char): ", i+1, getSuffix(i+1));
                     scanf(" %s", readType);
                     dataTypes[i] = CHAR;
                     if (strcmp(readType, "char") == 0) dataTypes[i] = CHAR;
@@ -88,16 +88,19 @@ int main(void){
                     
                 }
                 break;
-            case 3:
-                limpaTela();
-                hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping);
-                printf("AGRUPAR BYTES QUE NAO ENCAIXAM EM UMA LINHA PODE CAUSAR DISTORCOES NA TABELA\n");
-                printf("Digite o tamanho dos grupos de bytes.\n");
+            case 4:
+                printf("GROUPING BYTES THAT WONT FIT THE LINE MAY CAUSE TABLE DISTORTIONS.\n");
+                printf("Change how many bytes per lines are displayed accordingly to fix this.\n\n");
+                printf("Type how many bytes should be grouped together: ");
                 scanf("%d", &grouping);
+                break;
+            case 5:
+                offsetHex = (offsetHex) ? 0 : 1;
+                printf("Offset is now: %d!\n", offsetHex);
                 break;
             default:
                 continua = 0;
-                printf("Saindo..\n");
+                printf("Exiting..\n");
                 break;
         }
 
