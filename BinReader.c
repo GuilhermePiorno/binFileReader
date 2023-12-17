@@ -8,6 +8,8 @@
 #define CHAR 0;
 #define INT 1;
 #define FLOAT 2;
+#define MAX_DECODE_HEADER_SIZE 100
+#define MAX_FILE_NAME_SIZE 200
 
 
 
@@ -21,8 +23,9 @@ int main(void){
     int grouping = 1;
     dataTypes[0] = CHAR;
     int offsetHex = 0; // 0 for hex, 1 for dec.
+    char **DecodeHeaderNames = NULL;
 
-    char nomeArquivo[131];
+    char nomeArquivo[MAX_FILE_NAME_SIZE];
     printf("\nPlease maximize or enlarge your window in order to better visualize your data.\n\n");
     printf("Decoded char data between 0x00 and 0x37 are going to be represented by a dot.\n");
     printf("Type the name of the binary file: ");
@@ -40,16 +43,17 @@ int main(void){
     
     while(continua){
         clearScreen();
-        hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex);
+        hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames);
         printf("[1] Open file...\n");
         printf("[2] Adjust bytes per line displayed.\n");
         printf("[3] Decoder configuration.\n");
         printf("[4] Change byte group size.\n");
         printf("[5] Toggle offset display between Hex & Dec.\n");
+        printf("[6] Set Decoder header.\n");
         printf("[9] Exit\n");
         scanf("%d", &op);
         clearScreen();
-        hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex);
+        hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames);
 
         switch(op){
             case 1:
@@ -70,8 +74,8 @@ int main(void){
                 scanf("%d", &offset);
                 break;
             case 3:
-                printf("Data will be broken down into chunks, chunks will be interpreted as the given data types in the respective order.\n");
-                printf("Number of chunks to break down data: ");
+                printf("Data will be broken down into blocks, blocks will be interpreted as the given data types in the respective order.\n");
+                printf("Number of blocks to break down data: ");
                 scanf("%d", &nBlocks);
                 free(dataTypes);
                 dataTypes = malloc(nBlocks *sizeof(int));
@@ -87,6 +91,14 @@ int main(void){
                     if (strcmp(readType, "float") == 0) dataTypes[i] = FLOAT;
                     
                 }
+
+                if (DecodeHeaderNames){
+                    for (int i = 0; i<nBlocks; i++){
+                        free(DecodeHeaderNames[i]);
+                    }
+                    free(DecodeHeaderNames);
+                }
+                DecodeHeaderNames = NULL;
                 break;
             case 4:
                 printf("GROUPING BYTES THAT WONT FIT THE LINE MAY CAUSE TABLE DISTORTIONS.\n");
@@ -96,7 +108,44 @@ int main(void){
                 break;
             case 5:
                 offsetHex = (offsetHex) ? 0 : 1;
-                printf("Offset is now: %d!\n", offsetHex);
+                break;
+            case 6:
+                if (nBlocks > 16){
+                    printf("Number of decoded blocks exceeds the maximum amount of headers supported (16).\n");
+                    break;
+                } 
+                printf("The number of columns is set as the same as the number of decodable blocks.\n\n");
+                printf("It's HIGHLY RECOMMENDED to setup byte grouping, decoding and number of bytes\n");
+                printf("per line before adding headers to the decoded info.\n");
+                if (DecodeHeaderNames){
+                    for (int i = 0; i<nBlocks; i++){
+                        free(DecodeHeaderNames[i]);
+                    }
+                    free(DecodeHeaderNames);
+                }
+                
+                DecodeHeaderNames = malloc(sizeof(char*)*nBlocks);
+                
+                for (int i=0; i<nBlocks;i++){
+                    char *vartype;
+                    switch(dataTypes[i]){
+                        case 0:
+                            vartype = "char";
+                            break;
+                        case 1:
+                            vartype = "int";
+                            break;
+                        case 2:
+                            vartype = "float";
+                            break;
+                        default:
+                            vartype = "char";
+                    }
+
+                    printf("Header %d title (%s): ", i+1, vartype);
+                    DecodeHeaderNames[i] = malloc(sizeof(char)*MAX_DECODE_HEADER_SIZE);
+                    scanf("  %[^\n]s", DecodeHeaderNames[i]);
+                }
                 break;
             default:
                 continua = 0;
@@ -107,6 +156,13 @@ int main(void){
     }
     
 
+    if (DecodeHeaderNames){
+        for (int i = 0; i<nBlocks; i++){
+            free(DecodeHeaderNames[i]);
+        }
+        free(DecodeHeaderNames);
+    }
+    free(dataTypes);
     fclose(arquivo);
 
     return 0;
