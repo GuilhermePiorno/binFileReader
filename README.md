@@ -3,8 +3,9 @@
 
 Program to visualize binary files, displays data in hex or can be decoded with custom settings from user.
 
-Programa para exibir dados de arquivos binários em hexadecimal puro ou com decodificação selecionada pelo usuário.
+Highly recommended be ran at fullscreen for better visualization. 
 
+If still having issues with formating, try changing byte grouping and bytes per line.
 
 
 TODOs:
@@ -29,18 +30,43 @@ Byte grouping could switch to 4bytes/4bytes/1byte/4bytes and 13 bytes per line.
 
 ## Example:
 CLI:
+
+Compiling and opening a binReader:
 ```
 gcc -o binReader binReader
 ./binReader
+```
+Opening a file:
+```
 file: dados.dat
+```
+Selecting byte grouping size:
+```
+option: 4
+type group size: 4
+```
+Selecting how many bytes per line will be displayed:
+```
 option: 2
-number of blocks: 4
+type number of bytes per line: 16
+```
+Decoding data:
+```
+option: 3
 type for the 1st block: int
 type for the 2nd block: int
 type for the 3rd block: float
 type for the 4th block: int
-option: 3
-type group size: 4
+```
+Setup custom decode column header
+```
+option: 6
+fill in with a name for the column: matricula
+fill in with a name for the column: next
+fill in with a name for the column: media
+fill in with a name for the column: status
 ```
 
-![alt text](/example.png)
+
+
+![Output should look like this.](/example.png)
