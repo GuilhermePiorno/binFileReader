@@ -24,6 +24,7 @@ int main(void){
     dataTypes[0] = CHAR;
     int offsetHex = 0; // 0 for hex, 1 for dec.
     char **DecodeHeaderNames = NULL;
+    int decoderSetupStatus = 0;
 
     char nomeArquivo[MAX_FILE_NAME_SIZE];
     printf("\nPlease maximize or enlarge your window in order to better visualize your data.\n\n");
@@ -68,6 +69,7 @@ int main(void){
                     scanf(" %[^\n]s", nomeArquivo);
                     arquivo = fopen(nomeArquivo, "rb");
                 }
+                decoderSetupStatus = 0;
                 break;
             case 2:
                 printf("Number of bytes per line: ");
@@ -99,6 +101,7 @@ int main(void){
                     free(DecodeHeaderNames);
                 }
                 DecodeHeaderNames = NULL;
+                decoderSetupStatus = 1;
                 break;
             case 4:
                 printf("GROUPING BYTES THAT WONT FIT THE LINE MAY CAUSE TABLE DISTORTIONS.\n");
@@ -117,11 +120,20 @@ int main(void){
                 printf("The number of columns is set as the same as the number of decodable blocks.\n\n");
                 printf("It's HIGHLY RECOMMENDED to setup byte grouping, decoding and number of bytes\n");
                 printf("per line before adding headers to the decoded info.\n");
+
+                char backOption[20];
+                if (decoderSetupStatus == 0){
+                    printf("\nType \"continue\" if you wish to proceed, type \"back\" to go back: ");
+
+                    scanf(" %s", backOption);
+                    if (strcmp(backOption, "back")==0) break;
+                }
+                
                 if (DecodeHeaderNames){
-                    for (int i = 0; i<nBlocks; i++){
-                        free(DecodeHeaderNames[i]);
-                    }
-                    free(DecodeHeaderNames);
+                        for (int i = 0; i<nBlocks; i++){
+                            free(DecodeHeaderNames[i]);
+                        }
+                        free(DecodeHeaderNames);
                 }
                 
                 DecodeHeaderNames = malloc(sizeof(char*)*nBlocks);
