@@ -21,12 +21,13 @@ should be already setup during decoding setup)
 
 ~~-Adicionar funcionalidade de agrupamento de bytes. / Implement byte grouping when displaying data.~~
 
-- Consider a mode that corresponds with the decoding being used. e.g.: If decoding looks like this: int/float/char/int. 
-Byte grouping could switch to 4bytes/4bytes/1byte/4bytes and 13 bytes per line. 
+~~- Consider a mode that corresponds with the decoding being used. e.g.: If decoding looks like this: int/float/char/int. ~~
+~~Byte grouping could switch to 4bytes/4bytes/1byte/4bytes and 13 bytes per line. ~~
+Done this for bytes per line, to do this for grouping would probably require a rewrite of the main "hexdump" function.
 
--Consertar espaçamento e bordas de tabela no linux. / Fix issue that causes spacing and table border displaying incorrectly.
+-Fix issue that causes spacing and table border displaying incorrectly.
 
--Considerar a exibição de chars entre 0 e 37 decodificados de forma diferente de apenas um ponto (".").
+-Consider a different character display for chars between values 0 and 37 currently being displayed as a dot (".").
 
 ## Example:
 CLI:

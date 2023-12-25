@@ -25,6 +25,8 @@ int main(void){
     int offsetHex = 0; // 0 for hex, 1 for dec.
     char **DecodeHeaderNames = NULL;
     int decoderSetupStatus = 0;
+    int bytesPerLinePrediction;
+    int bytesPerDataType;
 
     char nomeArquivo[MAX_FILE_NAME_SIZE];
     printf("\nPlease maximize or enlarge your window in order to better visualize your data.\n\n");
@@ -57,7 +59,7 @@ int main(void){
         hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames);
 
         switch(op){
-            case 1:
+            case 1: // OPEN FILE.
                 fclose(arquivo);
                 arquivo = NULL;
                 printf("Type the name of the binary file: ");
@@ -71,11 +73,12 @@ int main(void){
                 }
                 decoderSetupStatus = 0;
                 break;
-            case 2:
+            case 2: // BYTES PER LINE.
                 printf("Number of bytes per line: ");
                 scanf("%d", &offset);
                 break;
-            case 3:
+            case 3: // DECODER SETUP
+                bytesPerLinePrediction = 0;
                 printf("Data will be broken down into blocks, blocks will be interpreted as the given data types in the respective order.\n");
                 printf("Number of blocks to break down data: ");
                 scanf("%d", &nBlocks);
@@ -88,11 +91,33 @@ int main(void){
                     printf("What is the type of the %d%s data (int, float ou char): ", i+1, getSuffix(i+1));
                     scanf(" %s", readType);
                     dataTypes[i] = CHAR;
-                    if (strcmp(readType, "char") == 0) dataTypes[i] = CHAR;
-                    if (strcmp(readType, "int") == 0) dataTypes[i] = INT;
-                    if (strcmp(readType, "float") == 0) dataTypes[i] = FLOAT;
-                    
+                    bytesPerDataType = 1;
+                    if (strcmp(readType, "char") == 0){
+                        dataTypes[i] = CHAR;
+                        bytesPerDataType = 1;
+                    } 
+                    if (strcmp(readType, "int") == 0){
+                        dataTypes[i] = INT;
+                        bytesPerDataType = 4;
+                    } 
+
+                    if (strcmp(readType, "float") == 0){
+                        dataTypes[i] = FLOAT;
+                        bytesPerDataType = 4;
+                    } 
+                    bytesPerLinePrediction += bytesPerDataType;
                 }
+
+                char autoAdjustOption[10];
+                if (bytesPerLinePrediction != offset){
+                    printf("Do you want to auto-adjust the number of bytes per line accordingly? (y/n)");
+                    scanf(" %s", autoAdjustOption);
+                    if (strcmp(autoAdjustOption, "y")==0){
+                        offset = bytesPerLinePrediction;
+                    }
+                }
+                
+
 
                 if (DecodeHeaderNames){
                     for (int i = 0; i<nBlocks; i++){
@@ -103,16 +128,16 @@ int main(void){
                 DecodeHeaderNames = NULL;
                 decoderSetupStatus = 1;
                 break;
-            case 4:
+            case 4: // BYTE GROUP SIZE
                 printf("GROUPING BYTES THAT WONT FIT THE LINE MAY CAUSE TABLE DISTORTIONS.\n");
                 printf("Change how many bytes per lines are displayed accordingly to fix this.\n\n");
                 printf("Type how many bytes should be grouped together: ");
                 scanf("%d", &grouping);
                 break;
-            case 5:
+            case 5: // DEC/HEX OFFSET SWITCH
                 offsetHex = (offsetHex) ? 0 : 1;
                 break;
-            case 6:
+            case 6: // SET HEADER TITLES.
                 if (nBlocks > 16){
                     printf("Number of decoded blocks exceeds the maximum amount of headers supported (16).\n");
                     break;
