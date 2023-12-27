@@ -24,13 +24,15 @@ void horizontalFrameln(int n, char chStart, char chEnd){
 
 
 
-void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int grouping, int offsetHex, char **DecodeHeaderNames){   
+void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int grouping, int offsetHex, char **DecodeHeaderNames, int* customGroupingArray){   
     int readStatus = 1, line = 0;
     unsigned char byte;
-    int currentBlock = 0, bytesParsed = 0, nextByte = 0, dataTypeWalk=0;
+    // int currentBlock = 0, bytesParsed = 0; 
+    int nextByte = 0, dataTypeWalk=0;
     int auxInt;
     char auxChar;
     float auxFloat;
+    int customGroupingIndex;
 
 
     //2*grouping representa quantos caracteres o print dos bytes agrupados ocupam.
@@ -109,8 +111,10 @@ void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int
         else{
             printf("\xBA   %02d\t    \xBA   ", line);
         }
+        customGroupingIndex = 0;
         for (int byteNumber = line; byteNumber < (line+offset); byteNumber++){
             readStatus = fread(&byte, sizeof(unsigned char), 1, arq);
+            
 
             if (readStatus){
                 // byte printing.
@@ -122,8 +126,14 @@ void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int
                 }
 
                 // tab between groupings.
-                if ((byteNumber+1) % grouping == 0) printf("\t");
-            } 
+                //if ((byteNumber+1) % grouping == 0) printf("\t");
+                // printf("-|%d/%d|-", ((byteNumber+1) % offset), customGroupingArray[customGroupingIndex]);
+                if (((byteNumber+1) % offset) >= customGroupingArray[customGroupingIndex]){
+                    printf("\t");
+                    // printf("-");
+                    customGroupingIndex += 1;
+                }
+            }
             else{ //empty spaces for non existing bytes, either "ghost" 0xXX or XX.
                 if (grouping == 1){
                     printf("    ");
@@ -135,7 +145,7 @@ void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int
                 if ((byteNumber+1) % grouping == 0) printf("\t");
             }
         }
-        printf("\xBA"); //  ║ 
+        printf("\t\xBA"); //  ║ 
 
         //Decoding section.
         int parseStart = ftell(arq) - offset;

@@ -12,18 +12,19 @@
 #define FLOAT 2;
 #define MAX_DECODE_HEADER_SIZE 100
 #define MAX_FILE_NAME_SIZE 200
+#define BPL_DEFAULT_VALUE 16
 
 
 
 
 int main(void){
     clearScreen();
-    int bytesPerLine = 16; // (Bytes per row. Offset)
+    int bytesPerLine = BPL_DEFAULT_VALUE; // (Bytes per row. Offset)
     int op, continua = 1;
     int nBlocks=1;
     int *dataTypes = malloc(sizeof(int));
     int grouping = 1;
-    int *groupingArray = NULL;
+    int *groupingArray = malloc(bytesPerLine*sizeof(int));
     dataTypes[0] = CHAR;
     int offsetHex = 0; // 0 for hex, 1 for dec.
     char **DecodeHeaderNames = NULL;
@@ -32,6 +33,7 @@ int main(void){
     int bytesPerDataType;
     char groupingStr[100]; // Actual max size should be 2*bytesperline to cover the case "1 1 ... 1"
     int lastpos, groupingByteSum;
+    char reply;
 
     char nomeArquivo[MAX_FILE_NAME_SIZE];
     printf("\nPlease maximize or enlarge your window in order to better visualize your data.\n\n");
@@ -48,10 +50,15 @@ int main(void){
         arquivo = fopen(nomeArquivo, "rb");
         
     }
+
+    //Default value for grouping.
+    for (int i=0; i<bytesPerLine; i++){
+        groupingArray[i] = i + 1; 
+    }
     
     while(continua){
         clearScreen();
-        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames);
+        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames, groupingArray);
         printf("[1] Open file...\n");
         printf("[2] Adjust bytes per line displayed.\n");
         printf("[3] Decoder configuration.\n");
@@ -61,7 +68,7 @@ int main(void){
         printf("[9] Exit\n");
         scanf("%d", &op);
         clearScreen();
-        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames);
+        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames, groupingArray);
 
         switch(op){
             case 1: // OPEN FILE.
@@ -113,13 +120,13 @@ int main(void){
                     bytesPerLinePrediction += bytesPerDataType;
                 }
 
-                char autoAdjustOption;
+                
                 if (bytesPerLinePrediction != bytesPerLine){
                     printf("Do you want to auto-adjust the number of bytes per line accordingly? (y/n): ");
-                    scanf(" %c", &autoAdjustOption);
-                    autoAdjustOption = tolower(autoAdjustOption);
-                    printf("%c", autoAdjustOption);
-                    if (autoAdjustOption == 'y'){
+                    scanf(" %c", &reply);
+                    reply = tolower(reply);
+                    printf("%c", reply);
+                    if (reply == 'y'){
                         bytesPerLine = bytesPerLinePrediction;
                     }
                 }
@@ -145,43 +152,30 @@ int main(void){
                 free(groupingArray);
                 groupingArray = malloc(bytesPerLine*sizeof(int));
                 scanf(" %[^\n]s", &groupingStr);
-                lastpos = splitnums(groupingStr, groupingArray);
-                groupingByteSum = 0;
-                for (int i=0;i<lastpos;i++){
-                    groupingByteSum += groupingArray[i];
-                }
 
-                if (bytesPerLine > groupingByteSum){
-                    // Makes things like: [2, 1, 1, TRASH, TRASH, TRASH] with lastpos = 3
-                    // become this: [2, 1, 1, 2, 1, 1] with lastpos = 6
-                    int posStep = lastpos;
-                    int maxIterations = (bytesPerLine / groupingByteSum) - 1;
-                    int remainingBytes = bytesPerLine % groupingByteSum;
+                lastpos = SplitNums(groupingStr, groupingArray);
+                groupingByteSum = CountGroupingSize(groupingArray, lastpos);
 
-                    // Repeats grouping pattern.
-                    for (int i=0; i < maxIterations; i++){
-                        for (int j = lastpos; j < lastpos + posStep; j++){
-                            groupingArray[j] = groupingArray[j % posStep];
-                            groupingByteSum += groupingArray[j % posStep];
-                        }
-                        lastpos += posStep;
+
+                if (bytesPerLine >= groupingByteSum){
+                    lastpos = MatchGroupingToLine(groupingArray, lastpos, bytesPerLine);
+                }else{
+                    printf("The grouping requested doesn't currently fit the current amount of bytes per line.\n");
+                    printf("Do you wish to auto-adjust the lenght of the line? (y/n)\n");
+                    printf("If not, custom grouping will be rejected. ");
+                    scanf(" %c", &reply);
+                    if (reply == 'y'){
+                        bytesPerLine = groupingByteSum;
                     }
-
-                    // Fills the rest of the bytes in the line.
-                    for (int i=0; i < remainingBytes ; i++){
-                        groupingArray[lastpos + i] = 1;
-                        groupingByteSum++;
+                    else{
+                        groupingArray[0] = 1;
+                        lastpos = MatchGroupingToLine(groupingArray, 1, bytesPerLine);
                     }
-                    lastpos += remainingBytes;
+                }
+                groupingByteSum = CountGroupingSize(groupingArray, lastpos);
 
-                }
-                printf("\nlast pos: %d", lastpos);
-                printf("\nGroupByteSum: %d", groupingByteSum);
-                printf("\nArray: ");
-                for (int i=0;i<lastpos;i++){
-                    printf(" %d", groupingArray[i]);
-                }
-                scanf(" %[^\n]s", &groupingStr);
+                CustomGroupingAccumulator(groupingArray, lastpos);
+
                 break;
             case 5: // DEC/HEX OFFSET SWITCH
                 offsetHex = (offsetHex) ? 0 : 1;
