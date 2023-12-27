@@ -10,6 +10,10 @@ If still having issues with formating, try changing byte grouping and bytes per 
 
 TODOs:
 
+-Set a limit for bytesPerLine so the user cant allocate an unreasonable ammount of memory.
+
+-Fix the "agrupamento" mem leak.
+
 -Organize code and simplify it before it becomes a bigger mess.
 
 ~~-Add option to "back out" form most options. As it is right now if you enter Header customization before settings things up and realize it, you can't back out for example.~~

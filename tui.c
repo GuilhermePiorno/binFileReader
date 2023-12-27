@@ -31,8 +31,7 @@ void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int
     int auxInt;
     char auxChar;
     float auxFloat;
-    // int grouping = 1;
-    int spacing = ((grouping*2)/4) + 1;
+
 
     //2*grouping representa quantos caracteres o print dos bytes agrupados ocupam.
     //+ 8 representa o valor de um "tab" em espaços.

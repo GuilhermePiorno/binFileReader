@@ -3,7 +3,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "tui.c"
+#include "misc.c"
 
 #define CHAR 0;
 #define INT 1;
@@ -16,17 +18,20 @@
 
 int main(void){
     clearScreen();
-    int offset = 16; // (Bytes per row)
+    int bytesPerLine = 16; // (Bytes per row. Offset)
     int op, continua = 1;
     int nBlocks=1;
     int *dataTypes = malloc(sizeof(int));
     int grouping = 1;
+    int *groupingArray = NULL;
     dataTypes[0] = CHAR;
     int offsetHex = 0; // 0 for hex, 1 for dec.
     char **DecodeHeaderNames = NULL;
     int decoderSetupStatus = 0;
     int bytesPerLinePrediction;
     int bytesPerDataType;
+    char groupingStr[100]; // Actual max size should be 2*bytesperline to cover the case "1 1 ... 1"
+    int lastpos, groupingByteSum;
 
     char nomeArquivo[MAX_FILE_NAME_SIZE];
     printf("\nPlease maximize or enlarge your window in order to better visualize your data.\n\n");
@@ -46,7 +51,7 @@ int main(void){
     
     while(continua){
         clearScreen();
-        hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames);
+        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames);
         printf("[1] Open file...\n");
         printf("[2] Adjust bytes per line displayed.\n");
         printf("[3] Decoder configuration.\n");
@@ -56,7 +61,7 @@ int main(void){
         printf("[9] Exit\n");
         scanf("%d", &op);
         clearScreen();
-        hexdump(arquivo, offset, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames);
+        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames);
 
         switch(op){
             case 1: // OPEN FILE.
@@ -75,7 +80,7 @@ int main(void){
                 break;
             case 2: // BYTES PER LINE.
                 printf("Number of bytes per line: ");
-                scanf("%d", &offset);
+                scanf("%d", &bytesPerLine);
                 break;
             case 3: // DECODER SETUP
                 bytesPerLinePrediction = 0;
@@ -108,12 +113,14 @@ int main(void){
                     bytesPerLinePrediction += bytesPerDataType;
                 }
 
-                char autoAdjustOption[10];
-                if (bytesPerLinePrediction != offset){
-                    printf("Do you want to auto-adjust the number of bytes per line accordingly? (y/n)");
-                    scanf(" %s", autoAdjustOption);
-                    if (strcmp(autoAdjustOption, "y")==0){
-                        offset = bytesPerLinePrediction;
+                char autoAdjustOption;
+                if (bytesPerLinePrediction != bytesPerLine){
+                    printf("Do you want to auto-adjust the number of bytes per line accordingly? (y/n): ");
+                    scanf(" %c", &autoAdjustOption);
+                    autoAdjustOption = tolower(autoAdjustOption);
+                    printf("%c", autoAdjustOption);
+                    if (autoAdjustOption == 'y'){
+                        bytesPerLine = bytesPerLinePrediction;
                     }
                 }
                 
@@ -133,6 +140,48 @@ int main(void){
                 printf("Change how many bytes per lines are displayed accordingly to fix this.\n\n");
                 printf("Type how many bytes should be grouped together: ");
                 scanf("%d", &grouping);
+
+                printf("\nFeature test, enter custom grouping: ");
+                free(groupingArray);
+                groupingArray = malloc(bytesPerLine*sizeof(int));
+                scanf(" %[^\n]s", &groupingStr);
+                lastpos = splitnums(groupingStr, groupingArray);
+                groupingByteSum = 0;
+                for (int i=0;i<lastpos;i++){
+                    groupingByteSum += groupingArray[i];
+                }
+
+                if (bytesPerLine > groupingByteSum){
+                    // Makes things like: [2, 1, 1, TRASH, TRASH, TRASH] with lastpos = 3
+                    // become this: [2, 1, 1, 2, 1, 1] with lastpos = 6
+                    int posStep = lastpos;
+                    int maxIterations = (bytesPerLine / groupingByteSum) - 1;
+                    int remainingBytes = bytesPerLine % groupingByteSum;
+
+                    // Repeats grouping pattern.
+                    for (int i=0; i < maxIterations; i++){
+                        for (int j = lastpos; j < lastpos + posStep; j++){
+                            groupingArray[j] = groupingArray[j % posStep];
+                            groupingByteSum += groupingArray[j % posStep];
+                        }
+                        lastpos += posStep;
+                    }
+
+                    // Fills the rest of the bytes in the line.
+                    for (int i=0; i < remainingBytes ; i++){
+                        groupingArray[lastpos + i] = 1;
+                        groupingByteSum++;
+                    }
+                    lastpos += remainingBytes;
+
+                }
+                printf("\nlast pos: %d", lastpos);
+                printf("\nGroupByteSum: %d", groupingByteSum);
+                printf("\nArray: ");
+                for (int i=0;i<lastpos;i++){
+                    printf(" %d", groupingArray[i]);
+                }
+                scanf(" %[^\n]s", &groupingStr);
                 break;
             case 5: // DEC/HEX OFFSET SWITCH
                 offsetHex = (offsetHex) ? 0 : 1;
