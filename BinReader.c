@@ -55,10 +55,11 @@ int main(void){
     for (int i=0; i<bytesPerLine; i++){
         groupingArray[i] = i + 1; 
     }
+    lastpos = BPL_DEFAULT_VALUE;
     
     while(continua){
         clearScreen();
-        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames, groupingArray);
+        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames, groupingArray, lastpos);
         printf("[1] Open file...\n");
         printf("[2] Adjust bytes per line displayed.\n");
         printf("[3] Decoder configuration.\n");
@@ -68,7 +69,7 @@ int main(void){
         printf("[9] Exit\n");
         scanf("%d", &op);
         clearScreen();
-        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames, groupingArray);
+        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames, groupingArray, lastpos);
 
         switch(op){
             case 1: // OPEN FILE.
@@ -88,6 +89,14 @@ int main(void){
             case 2: // BYTES PER LINE.
                 printf("Number of bytes per line: ");
                 scanf("%d", &bytesPerLine);
+
+                // free(groupingArray);
+                // groupingArray = malloc(bytesPerLine*sizeof(int));
+                // for (int i=0; i<bytesPerLine; i++){
+                //     groupingArray[i] = i + 1; 
+                // }
+                // lastpos = bytesPerLine;
+
                 break;
             case 3: // DECODER SETUP
                 bytesPerLinePrediction = 0;
