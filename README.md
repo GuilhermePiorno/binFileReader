@@ -12,7 +12,7 @@ TODOs:
 
 -Set a limit for bytesPerLine so the user cant allocate an unreasonable ammount of memory.
 
--Fix the "agrupamento" mem leak.
+~~-Fix the "agrupamento" mem leak.~~
 
 -Organize code and simplify it before it becomes a bigger mess.
 
@@ -27,7 +27,7 @@ should be already setup during decoding setup)
 
 ~~- Consider a mode that corresponds with the decoding being used. e.g.: If decoding looks like this: int/float/char/int. ~~
 ~~Byte grouping could switch to 4bytes/4bytes/1byte/4bytes and 13 bytes per line. ~~
-Done this for bytes per line, to do this for grouping would probably require a rewrite of the main "hexdump" function.
+
 
 -Fix issue that causes spacing and table border displaying incorrectly.
 
