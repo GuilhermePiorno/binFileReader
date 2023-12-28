@@ -7,7 +7,7 @@ void clearScreen(void);
 // Imprime n separadores horizontais  com inicio e fim.
 void horizontalFrame(int n, char chStart, char chEnd);
 
-// Imprime n separadores horizontais com inicio e fim.\n no fim.
+// Imprime n separadores horizontais com inicio e fim, com "\n" no fim.
 void horizontalFrameln(int n, char chStart, char chEnd);
 
 
@@ -17,4 +17,4 @@ void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int
 //Suffix for ordinal numbers.
 const char* getSuffix(int num);
 
-
+int CalculateTabbedSpaces(int* array, int size);

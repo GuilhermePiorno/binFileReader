@@ -6,7 +6,7 @@ int SplitNums(char* str, int* array);
 int CountGroupingSize(int* array, int endPos);
 
 // Fits grouping into a line by repetition or filling with 1's
-// returns size of the array.
+// Returns size of the array.
 int MatchGroupingToLine(int* groupingArray, int arraySize, int bytesPerLine);
 
 // Accumulates values of the gruping array.

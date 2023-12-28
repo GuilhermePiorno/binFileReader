@@ -35,13 +35,11 @@ void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int
     int customGroupingIndex;
     int lastprint;
 
+    
+    // 2*offset -> represents the space each byte occupies
+    // Calculated Tabbed Spaces returns the actual space tabs will occupy.
+    int magicspace = 2*offset + CalculateTabbedSpaces(customGroupingArray, customGroupingSize);
 
-    //2*grouping representa quantos caracteres o print dos bytes agrupados ocupam.
-    //+ 8 representa o valor de um "tab" em espaços.
-    // -2*grouping%8 é o quanto o espaçamento de 8 diminui de acordo com que o print
-    //_dos bytes ocupa mais espaço.
-    // * (offset/grouping) é o número de grupos em um espaço de offset.
-    int magicspace = (2*grouping + 8 - 2*grouping%8)*(offset/grouping);
     fseek(arq, 0, SEEK_SET);
 
     // Line 1 - Border of Name tab.
@@ -135,32 +133,15 @@ void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int
 
             if (readStatus){
                 // byte printing.
-                if (grouping == 1){
-                    printf("0x%02X", byte);
-                }
-                else{
-                    printf("%02X", byte);
-                }
-
-                // tab between groupings.
-                //if ((byteNumber+1) % grouping == 0) printf("\t");
-                // printf("-|%d/%d|-", ((byteNumber+1) % offset), customGroupingArray[customGroupingIndex]);
-                
-                if (((byteNumber+1) % offset) >= customGroupingArray[customGroupingIndex]){
-                    printf("\t");
-                    // printf("-");
-                    customGroupingIndex += 1;
-                }
+                printf("%02X", byte);
             }
             else{ //empty spaces for non existing bytes, either "ghost" 0xXX or XX.
-                if (grouping == 1){
-                    printf("    ");
-                }
-                else{
-                    printf("  ");
-                }
-                //aplica tab para cada grupo bytes "completo".
-                if ((byteNumber+1) % grouping == 0) printf("\t");
+                printf("  ");
+            }
+            
+            if (((byteNumber+1) % offset) >= customGroupingArray[customGroupingIndex]){
+                printf("\t");
+                customGroupingIndex += 1;
             }
         }
         printf("\t\xBA"); //  ║ 
@@ -300,4 +281,25 @@ const char* getSuffix(int num) {
             default: return "th";
         }
     }
+}
+
+int CalculateTabbedSpaces(int* array, int arraysize){
+    int spaces = 0;
+
+    //Goes back before accumulation.
+    for (int i = arraysize - 1; i > 0; i--){
+        array[i] -= array[i-1];
+    }
+    
+    //Calculates the space each tab will contribute to the sum.
+    for (int i = 0; i < arraysize; i++){
+        spaces += 8 - (2*array[i])%8;
+    }
+
+    //Turns the array back to its original form.
+    for (int i = 1; i < arraysize; i++){
+        array[i] += array[i-1];
+    }
+    
+    return spaces;
 }
