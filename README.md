@@ -42,15 +42,15 @@ Opening a file:
 ```
 file: dados.dat
 ```
-Selecting how many bytes per line will be displayed:
-```
-option: 2
-type number of bytes per line: 16
-```
 Selecting byte grouping size:
 ```
 option: 4
 type group size: 4
+```
+Selecting how many bytes per line will be displayed:
+```
+option: 2
+type number of bytes per line: 16
 ```
 Decoding data:
 ```
@@ -63,9 +63,9 @@ type for the 4th block: int
 Setup custom decode column header
 ```
 option: 6
-fill in with a name for the column: matricula
+fill in with a name for the column: int_value
 fill in with a name for the column: next
-fill in with a name for the column: media
+fill in with a name for the column: float_value
 fill in with a name for the column: status
 ```
 
