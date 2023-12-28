@@ -23,7 +23,6 @@ int main(void){
     int op, continua = 1;
     int nBlocks=1;
     int *dataTypes = malloc(sizeof(int));
-    int grouping = 1;
     int *groupingArray = malloc(bytesPerLine*sizeof(int));
     dataTypes[0] = CHAR;
     int offsetHex = 0; // 0 for hex, 1 for dec.
@@ -32,7 +31,7 @@ int main(void){
     int bytesPerLinePrediction;
     int bytesPerDataType;
     char groupingStr[100]; // Actual max size should be 2*bytesperline to cover the case "1 1 ... 1"
-    int lastpos, groupingByteSum;
+    int lastPos, groupingByteSum;
     char reply;
 
     char nomeArquivo[MAX_FILE_NAME_SIZE];
@@ -51,15 +50,16 @@ int main(void){
         
     }
 
+    bytesPerLine = BPL_DEFAULT_VALUE;
     //Default value for grouping.
     for (int i=0; i<bytesPerLine; i++){
         groupingArray[i] = i + 1; 
     }
-    lastpos = BPL_DEFAULT_VALUE;
+    lastPos = BPL_DEFAULT_VALUE;
     
     while(continua){
         clearScreen();
-        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames, groupingArray, lastpos);
+        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, offsetHex, DecodeHeaderNames, groupingArray, lastPos);
         printf("[1] Open file...\n");
         printf("[2] Adjust bytes per line displayed.\n");
         printf("[3] Decoder configuration.\n");
@@ -69,12 +69,16 @@ int main(void){
         printf("[9] Exit\n");
         scanf("%d", &op);
         clearScreen();
-        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, grouping, offsetHex, DecodeHeaderNames, groupingArray, lastpos);
+        hexdump(arquivo, bytesPerLine, nomeArquivo, dataTypes, nBlocks, offsetHex, DecodeHeaderNames, groupingArray, lastPos);
 
         switch(op){
             case 1: // OPEN FILE.
+                //Clearing some values to avoid memleak.
+                free(groupingArray);
                 fclose(arquivo);
                 arquivo = NULL;
+
+
                 printf("Type the name of the binary file: ");
                 scanf(" %[^\n]s", nomeArquivo);
                 arquivo = fopen(nomeArquivo, "rb");
@@ -84,22 +88,41 @@ int main(void){
                     scanf(" %[^\n]s", nomeArquivo);
                     arquivo = fopen(nomeArquivo, "rb");
                 }
+
+                // Reseting values.
+                bytesPerLine = BPL_DEFAULT_VALUE;
+                groupingArray = malloc(bytesPerLine*sizeof(int));
+                for (int i=0; i<bytesPerLine; i++){
+                    groupingArray[i] = i + 1; 
+                }
+                lastPos = BPL_DEFAULT_VALUE;
                 decoderSetupStatus = 0;
                 break;
             case 2: // BYTES PER LINE.
+                printf("CHANGING THIS CONFIGURATION WILL RESET THE BYTE GROUPING SETUP\n\n");
                 printf("Number of bytes per line: ");
                 scanf("%d", &bytesPerLine);
 
-                // free(groupingArray);
-                // groupingArray = malloc(bytesPerLine*sizeof(int));
-                // for (int i=0; i<bytesPerLine; i++){
-                //     groupingArray[i] = i + 1; 
-                // }
-                // lastpos = bytesPerLine;
+                free(groupingArray);
+                groupingArray = malloc(bytesPerLine*sizeof(int));
+                for (int i=0; i<bytesPerLine; i++){
+                    groupingArray[i] = i + 1; 
+                }
+                lastPos = bytesPerLine;
 
                 break;
             case 3: // DECODER SETUP
+                // If nblocks is reset before a free, the extent of DecoderHeaderNames would be lost.
                 bytesPerLinePrediction = 0;
+                if (DecodeHeaderNames){
+                    for (int i = 0; i<nBlocks; i++){
+                        free(DecodeHeaderNames[i]);
+                    }
+                    free(DecodeHeaderNames);
+                }
+                DecodeHeaderNames = NULL;
+                decoderSetupStatus = 1;
+
                 printf("Data will be broken down into blocks, blocks will be interpreted as the given data types in the respective order.\n");
                 printf("Number of blocks to break down data: ");
                 scanf("%d", &nBlocks);
@@ -141,7 +164,6 @@ int main(void){
                 }
                 
 
-
                 if (DecodeHeaderNames){
                     for (int i = 0; i<nBlocks; i++){
                         free(DecodeHeaderNames[i]);
@@ -154,20 +176,22 @@ int main(void){
             case 4: // BYTE GROUP SIZE
                 printf("GROUPING BYTES THAT WONT FIT THE LINE MAY CAUSE TABLE DISTORTIONS.\n");
                 printf("Change how many bytes per lines are displayed accordingly to fix this.\n\n");
+                printf("You can enter an integer for simple grouping of that number of bytes\n");
+                printf("You can also enter a pattern to create a custom grouping.\n");
+                printf("Example: 4 2 2 (groups bytes in a pattern of 4 2 2 until it reaches the end of the line)\n\n");
                 printf("Type how many bytes should be grouped together: ");
-                scanf("%d", &grouping);
 
-                printf("\nFeature test, enter custom grouping: ");
+
                 free(groupingArray);
                 groupingArray = malloc(bytesPerLine*sizeof(int));
-                scanf(" %[^\n]s", &groupingStr);
+                scanf(" %[^\n]s", groupingStr);
 
-                lastpos = SplitNums(groupingStr, groupingArray);
-                groupingByteSum = CountGroupingSize(groupingArray, lastpos);
+                lastPos = SplitNums(groupingStr, groupingArray);
+                groupingByteSum = CountGroupingSize(groupingArray, lastPos);
 
 
                 if (bytesPerLine >= groupingByteSum){
-                    lastpos = MatchGroupingToLine(groupingArray, lastpos, bytesPerLine);
+                    lastPos = MatchGroupingToLine(groupingArray, lastPos, bytesPerLine);
                 }else{
                     printf("The grouping requested doesn't currently fit the current amount of bytes per line.\n");
                     printf("Do you wish to auto-adjust the lenght of the line? (y/n)\n");
@@ -178,12 +202,12 @@ int main(void){
                     }
                     else{
                         groupingArray[0] = 1;
-                        lastpos = MatchGroupingToLine(groupingArray, 1, bytesPerLine);
+                        lastPos = MatchGroupingToLine(groupingArray, 1, bytesPerLine);
                     }
                 }
-                groupingByteSum = CountGroupingSize(groupingArray, lastpos);
+                groupingByteSum = CountGroupingSize(groupingArray, lastPos);
 
-                CustomGroupingAccumulator(groupingArray, lastpos);
+                CustomGroupingAccumulator(groupingArray, lastPos);
 
                 break;
             case 5: // DEC/HEX OFFSET SWITCH
@@ -198,6 +222,7 @@ int main(void){
                 printf("It's HIGHLY RECOMMENDED to setup byte grouping, decoding and number of bytes\n");
                 printf("per line before adding headers to the decoded info.\n");
 
+                // Gives the user a way out. (could be treated with only a char y/n.. maybe change that.)
                 char backOption[20];
                 if (decoderSetupStatus == 0){
                     printf("\nType \"continue\" if you wish to proceed, type \"back\" to go back: ");
@@ -206,6 +231,7 @@ int main(void){
                     if (strcmp(backOption, "back")==0) break;
                 }
                 
+                // Frees before setting up a variable that could be allocated.
                 if (DecodeHeaderNames){
                         for (int i = 0; i<nBlocks; i++){
                             free(DecodeHeaderNames[i]);
@@ -251,6 +277,7 @@ int main(void){
         }
         free(DecodeHeaderNames);
     }
+    free(groupingArray);
     free(dataTypes);
     fclose(arquivo);
 

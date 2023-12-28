@@ -24,7 +24,7 @@ void horizontalFrameln(int n, char chStart, char chEnd){
 
 
 
-void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int grouping, int offsetHex, char **DecodeHeaderNames, int* customGroupingArray, int customGroupingSize){   
+void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int offsetHex, char **DecodeHeaderNames, int* customGroupingArray, int customGroupingSize){   
     int readStatus = 1, line = 0;
     unsigned char byte;
     // int currentBlock = 0, bytesParsed = 0; 
@@ -53,7 +53,7 @@ void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int
 
 
     // Line 4 -  ║ Offset    ║   00      01  ...
-    printf("\xBA Offset    \xBA");  //  ║ Offset    ║
+    printf("\xBA Offset    \xBA");  //  ║ Offset    ║ 
 
     if (offsetHex==0){   // 00
         printf("\t%02X", 0);

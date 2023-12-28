@@ -12,7 +12,7 @@ void horizontalFrameln(int n, char chStart, char chEnd);
 
 
 // Hexdump with decoding.
-void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int grouping, int offsetHex, char** DecodeHeaderNames, int* customGroupingArray, int customGroupingSize);
+void hexdump(FILE *arq, int offset, char *name, int *dataTypes, int nBlocks, int offsetHex, char** DecodeHeaderNames, int* customGroupingArray, int customGroupingSize);
 
 //Suffix for ordinal numbers.
 const char* getSuffix(int num);
